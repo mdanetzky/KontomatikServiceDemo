@@ -1,4 +1,6 @@
 ## Ignore appsettings.json - it contains the api key
+appsettings.json
+testsettings.json
 
 ## Ignore OSX DS_Store
 .DS_Store
