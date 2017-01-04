@@ -6,6 +6,8 @@ export class Kontomatik {
 
     private static socket: KontomatikSocket;
     private static commands: { [id: string]: Command } = {};
+    private static commandQueue: Command[] = [];
+    private static currentCommand: Command = null;
 
     public static initWidget(options: KontomatikWidgetOptions) {
         embedKontomatik(Kontomatik.getInternalWidgetOptions(options));
@@ -17,12 +19,12 @@ export class Kontomatik {
 
     public static getOwnerDetails(callback: (xml: string) => void) {
         let command: Command = new ImportOwnerDetailsCommand();
-        Kontomatik.executeCommand(command, callback);
+        Kontomatik.enqueueCommand(command, callback);
     }
 
     public static getAccounts(callback: (xml: string) => void) {
         let command: Command = new ImportAccountsCommand();
-        Kontomatik.executeCommand(command, callback);
+        Kontomatik.enqueueCommand(command, callback);
     }
 
     public static getTransactions(iban: string, since: Date, callback: (xml: string) => void) {
@@ -30,18 +32,29 @@ export class Kontomatik {
         command.id += iban;
         command.iban = iban;
         command.since = since;
-        Kontomatik.executeCommand(command, callback);
+        Kontomatik.enqueueCommand(command, callback);
     }
 
     public static getFinHealthIndicator(callback: (xml: string) => void) {
         let command: Command = new FinHealthIndicatorCommand();
-        Kontomatik.executeCommand(command, callback);
+        Kontomatik.enqueueCommand(command, callback);
     }
 
-    private static executeCommand(command: Command, callback: (xml: string) => void) {
+    private static enqueueCommand(command: Command, callback: (xml: string) => void) {
         if (!Kontomatik.commands[command.id]) {
             command.callback = callback;
             Kontomatik.commands[command.id] = command;
+            Kontomatik.commandQueue.push(command);
+            if (Kontomatik.currentCommand == null) {
+                Kontomatik.executeNextCommand();
+            }
+        }
+    }
+
+    private static executeNextCommand() {
+        let command = Kontomatik.commandQueue.shift();
+        if (command) {
+            Kontomatik.currentCommand = command;
             Kontomatik.socket.send(command);
         }
     }
@@ -59,6 +72,8 @@ export class Kontomatik {
         if (Kontomatik.commands[id]) {
             Kontomatik.commands[id].callback(message["Data"]);
             delete Kontomatik.commands[id];
+            Kontomatik.currentCommand = null;
+            Kontomatik.executeNextCommand();
         }
     }
 
@@ -77,7 +92,7 @@ export class Kontomatik {
         internalOptions.onSuccess = Kontomatik.getInternalOnSuccess(options);
         return internalOptions;
     }
-    
+
     private static getInternalOnSuccess(options: KontomatikWidgetOptions): any {
         return (target: string, sessionId: string, sessionIdSignature: string) => {
             let session = new KontomatikSession();
@@ -90,9 +105,9 @@ export class Kontomatik {
     }
 
     public static randomString(length) {
-        var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        var result = '';
-        for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+        let chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        let result = '';
+        for (let i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
         return result;
     }
 }
