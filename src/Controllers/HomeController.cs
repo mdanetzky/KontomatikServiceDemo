@@ -23,6 +23,7 @@ namespace Kontomatik.Controllers
             {
                 ViewData["SessionId"] = Request.Form["SessionId"];
                 ViewData["Target"] = Request.Form["Target"];
+                ViewData["ExternalOwnerId"] = Request.Form["ExternalOwnerId"];
             }
             else
             {

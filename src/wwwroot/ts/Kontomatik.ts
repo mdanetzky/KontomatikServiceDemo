@@ -7,8 +7,8 @@ export class Kontomatik {
     private static socket: KontomatikSocket;
     private static commands: { [id: string]: Command } = {};
 
-    public static initWidget(options: KontomatikOptions) {
-        embedKontomatik(Kontomatik.getInternalOptions(options));
+    public static initWidget(options: KontomatikWidgetOptions) {
+        embedKontomatik(Kontomatik.getInternalWidgetOptions(options));
     }
 
     public static initSocket(session: KontomatikSession) {
@@ -68,38 +68,48 @@ export class Kontomatik {
             '<a href="/" class="btn btn-primary" role="button">Restart</a>');
     }
 
-    private static getInternalOptions(options: KontomatikOptions): InternalKontomatikOptions {
-        let internalOptions = new InternalKontomatikOptions();
+    private static getInternalWidgetOptions(options: KontomatikWidgetOptions): InternalKontomatikWidgetOptions {
+        let internalOptions = new InternalKontomatikWidgetOptions();
         internalOptions.client = options.client;
         internalOptions.divId = options.divId;
         internalOptions.target = options.target;
-        internalOptions.client = options.client;
+        internalOptions.externalOwnerId = options.externalOwnerId;
         internalOptions.onSuccess = Kontomatik.getInternalOnSuccess(options);
         return internalOptions;
     }
     
-    private static getInternalOnSuccess(options: KontomatikOptions): any {
+    private static getInternalOnSuccess(options: KontomatikWidgetOptions): any {
         return (target: string, sessionId: string, sessionIdSignature: string) => {
             let session = new KontomatikSession();
             session.sessionId = sessionId + ':' + sessionIdSignature;
             session.sessionIdSignature = sessionIdSignature;
             session.target = target;
+            session.externalOwnerId = options.externalOwnerId;
             options.onSuccess(session);
         }
     }
+
+    public static randomString(length) {
+        var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        var result = '';
+        for (var i = length; i > 0; --i) result += chars[Math.floor(Math.random() * chars.length)];
+        return result;
+    }
 }
 
-export class KontomatikOptions {
+export class KontomatikWidgetOptions {
     client: string;
     divId: string = 'kontomatik';
     target: string;
+    externalOwnerId: string = Kontomatik.randomString(20);
     onSuccess: (session: KontomatikSession) => void;
 }
 
-class InternalKontomatikOptions {
+class InternalKontomatikWidgetOptions {
     client: string;
     divId: string;
     target: string;
+    externalOwnerId: string;
     onSuccess: (target: string, sessionId: string, sessionIdSignature: string) => void;
 }
 
@@ -107,6 +117,7 @@ export class KontomatikSession {
     target: string;
     sessionId: string;
     sessionIdSignature: string;
+    externalOwnerId: string;
 }
 
 export class ImportOwnerDetailsCommand implements Command {

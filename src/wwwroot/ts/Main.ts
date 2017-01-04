@@ -1,12 +1,12 @@
 /// <reference path="./jquery/jquery.d.ts" />
 declare let vkbeautify: any;
-import { Kontomatik, KontomatikOptions, KontomatikSession } from "./Kontomatik";
+import { Kontomatik, KontomatikWidgetOptions, KontomatikSession } from "./Kontomatik";
 import { ActionButton, ButtonSize, ButtonColor } from "./ActionButton";
 import { AlertBox } from "./AlertBox";
 
 class KontomatikMain {
 
-    private static kontomatikOpts: KontomatikOptions = new KontomatikOptions();
+    private static kontomatikOpts: KontomatikWidgetOptions = new KontomatikWidgetOptions();
 
     public static embedWidget() {
         if (KontomatikMain.isWidgetPage()) {
@@ -171,12 +171,14 @@ class KontomatikMain {
         let kontomatikForm = document.forms["kontomatikForm"];
         kontomatikForm.SessionId.value = session.sessionId;
         kontomatikForm.Target.value = session.target;
+        kontomatikForm.ExternalOwnerId.value = session.externalOwnerId;
         kontomatikForm.submit();
     }
 
     private static getSession(): KontomatikSession {
         let session: KontomatikSession = new KontomatikSession();
         session.sessionId = $("#kontomatik-actions").attr("session-id");
+        session.externalOwnerId = $("#kontomatik-actions").attr("external-owner-id");
         return session;
     }
 };

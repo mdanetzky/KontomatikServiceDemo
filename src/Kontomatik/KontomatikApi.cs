@@ -12,19 +12,22 @@ namespace Kontomatik
         private string ApiKey;
         private string ApiUrl;
         private string[] SessionId;
+        private string ExternalOwnerId;
         private string Target;
         public KontomatikApi(string ApiKey, string ApiUrl)
         {
             this.ApiKey = ApiKey;
             this.ApiUrl = ApiUrl;
+            this.ExternalOwnerId = RandomString(20);
         }
-        public KontomatikApi(string SessionId, string ApiKey, string ApiUrl)
+        public KontomatikApi(string SessionId, string ExternalOwnerId, string ApiKey, string ApiUrl)
         {
             if (!SessionId.Contains(":"))
             {
                 throw new KontomatikException(SessionId + " is missing the sessionIdSignature after colon");
             }
             this.SessionId = SessionId.Split(':');
+            this.ExternalOwnerId = ExternalOwnerId;
             this.ApiKey = ApiKey;
             this.ApiUrl = ApiUrl;
         }
@@ -172,7 +175,8 @@ namespace Kontomatik
                 {
                     { "apiKey", ApiKey },
                     { "sessionId", SessionId[0] },
-                    { "sessionIdSignature", SessionId[1] }
+                    { "sessionIdSignature", SessionId[1] },
+                    { "externalOwnerId", ExternalOwnerId }
                 };
         }
         private static async Task<string> PerformPostRequest(string url, Dictionary<string, string> values)
@@ -231,6 +235,13 @@ namespace Kontomatik
                 return this.ApiUrl.Remove(this.ApiUrl.Length - 1);
             }
             return this.ApiUrl;
+        }
+        public static string RandomString(int length)
+        {
+            Random random = new Random();
+            const string chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            return new string(Enumerable.Repeat(chars, length)
+              .Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 

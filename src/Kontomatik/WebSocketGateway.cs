@@ -53,9 +53,12 @@ namespace Kontomatik
                 this.SendToClient(null, null, "Empty datagram received");
                 throw new KontomatikException("WebSocket received an empty datagram");
             }
-            if (values.ContainsKey("sessionId") && api == null)
+            if (values.ContainsKey("sessionId") && values.ContainsKey("externalOwnerId") && api == null)
             {
-                api = new KontomatikApi(values["sessionId"], appsettings.GetValue<String>("ApiKey"), appsettings.GetValue<String>("ApiUrl"));
+                api = new KontomatikApi(values["sessionId"], 
+                appsettings.GetValue<String>("externalOwnerId"), 
+                appsettings.GetValue<String>("ApiKey"), 
+                appsettings.GetValue<String>("ApiUrl"));
             }
             if (values.ContainsKey("id"))
             {
