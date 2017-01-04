@@ -1,13 +1,9 @@
-FROM microsoft/dotnet:latest
-
-COPY . /app
+FROM microsoft/dotnet:1.1.0-runtime
 
 WORKDIR /app
 
-RUN ["dotnet", "restore"]
-
-RUN ["dotnet", "build"]
+COPY out .
 
 EXPOSE 5000/tcp
 
-CMD ["dotnet", "run", "--server.urls", "http://*:5000"]
+ENTRYPOINT ["dotnet", "src.dll", "--server.urls", "http://*:5000"]

@@ -23,3 +23,13 @@ dotnet restore
 dotnet run
 ```
 * Open the browser and navigate to [http://localhost:5000](http://localhost:5000)
+
+## Running in Docker
+
+* In the shell cd to project's src folder and type:
+```
+dotnet publish -c Release -o out
+docker build -t dotnetapp .
+rm -r out
+docker run -p 5000:5000 -it --rm dotnetapp
+```
